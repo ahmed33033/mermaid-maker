@@ -37,7 +37,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^3.0.0"
+    "@actions/core": "^3.0.0",
+    "@mermaid-js/mermaid-cli": "^11.15.0"
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
