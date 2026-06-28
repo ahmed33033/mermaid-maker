@@ -303,3 +303,24 @@ To check the status of cached licenses, run the following command:
 ```bash
 licensed status
 ```
+
+## Architecture
+
+  convert_existing:
+  file_extension:
+  output_dir:
+  output_format:
+
+what we need to do:
+- if convert_existing, check for existing files
+  - use the file_extension, or use the default .mmd
+- add potential existing files to changed files list
+- iterate through each file and convert to output_format
+  - remove current file extension if existing and replace with output_format
+  - generate mermaid images in output_dir
+- generate some helpful log messages
+
+3 files
+- file collector
+- file generator 
+- file in the middle to gen metadata (input)
