@@ -40,6 +40,8 @@ runs:
         files: |
           **.${{inputs.input_file_extension}}
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
+      env:
+        ALL_CHANGED_FILES: ${{steps.changed_files.outputs.all_changed_files}}
       run: |
         for file in ${ALL_CHANGED_FILES}; do
             aa-exec --profile=chrome mmdc -i $file -o "$file".svg -b transparent
