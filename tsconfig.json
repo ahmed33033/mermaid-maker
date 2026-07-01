@@ -23,16 +23,19 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ES2022"
+    "target": "ES2022",
+    "types": [
+      "jest"
+    ]
   },
   "exclude": [
-    "__fixtures__",
     "__tests__",
+    "__fixtures__",
     "coverage",
     "dist",
     "node_modules"
   ],
   "include": [
-    "src"
+    "src",
   ]
 }
