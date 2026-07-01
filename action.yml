@@ -1,10 +1,6 @@
 name: Mermaid Maker 
 description: Convert mermaid files into image formats.
 inputs:
-  convert_existing:
-    description:  convert existing mermaid files 
-    required: false
-    default: "false"
   input_dir:
     description: the input directory for mermaid files
     required: false
@@ -28,5 +24,28 @@ branding:
   color: red
 
 runs:
-  using: node24
-  main: dist/index.js
+  using: composite
+  steps:
+    - uses: "actions/checkout@main"
+      with:
+        token: ${{github.token}}
+    - uses: "actions/setup-node@main"
+      with: 
+        node-version: 26
+    - run: npm i --save-dev @mermaid/cli
+      shell: bash
+    - uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+      id: changed_files
+      with: 
+        files: |
+          **.${{inputs.input_file_extension}}
+    - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
+      run: |
+        for file in ${ALL_CHANGED_FILES}; do
+            aa-exec --profile=chrome npm mmdc -i $file -o "$file".svg -b transparent
+        done
+      shell: bash
+    - uses: EndBug/add-and-commit@v10
+      with:
+        message: "feat: Convert .mmd file(s) to svg"
+    
