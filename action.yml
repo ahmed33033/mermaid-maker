@@ -17,6 +17,11 @@ inputs:
     description: the output format of the generated mermaid files
     required: false
     default: "svg"
+  token: 
+    description: |
+      the PAT (personal access token) used to access and push changes
+      to the github repo
+    required: true
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
@@ -28,7 +33,7 @@ runs:
   steps:
     - uses: "actions/checkout@main"
       with:
-        token: ${{github.token}}
+        token: ${{inputs.token}}
     - uses: "actions/setup-node@main"
       with: 
         node-version: 26

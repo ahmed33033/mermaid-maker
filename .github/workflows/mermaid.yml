@@ -8,5 +8,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: "ahmed33033/mermaid-maker@main"
+              with:
+                token: ${{github.token}}
 
     
