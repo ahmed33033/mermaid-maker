@@ -41,17 +41,16 @@ runs:
       shell: bash
     - run: |
         if [[ ${{inputs.input_dir}} == "all" ]]; then
-          echo "dir_prefix=''" >> "$GITHUB_OUTPUT"
+          echo "files-to-check='${{inputs.input_file_extension}}'" >> "$GITHUB_OUTPUT"
         else
-          echo "dir_prefix='${{inputs.input_dir}}/'"
+          echo "files-to-check='${{inputs.input_dir}}/${{inputs.input_file_extension}}'" >> "$GITHUB_OUTPUT"
         fi
-      id: get-dir-prefix
+      id: get-files-to-check
       shell: bash
     - uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
       id: changed_files
       with: 
-        files: |
-          ${{steps.get-dir-prefix.outputs.dir_prefix}}**.${{inputs.input_file_extension}}
+        files: ${{steps.get-files-to-check.outputs.files-to-check}}
         since: "2022-04-30"
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
       env:
