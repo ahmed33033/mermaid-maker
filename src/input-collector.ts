@@ -1,15 +1,6 @@
 import * as core from "@actions/core";
+import { action_input_type, action_input } from "./input-schema.js";
 import * as z from "zod";
-
-const action_input = z.object({
-    convert_existing: z.coerce.boolean(),
-    input_dir: z.string(),
-    input_file_extension: z.string().max(5),
-    output_dir: z.string(),
-    output_file_extension: z.literal(["svg", "png", "pdf"])
-})
-
-type action_input_type = z.infer<typeof action_input>;
 
 export async function input_collector(): Promise<action_input_type | {}> {
     try {
