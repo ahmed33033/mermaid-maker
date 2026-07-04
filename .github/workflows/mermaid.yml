@@ -14,5 +14,6 @@ jobs:
             - uses: "./.github/actions/mermaid-maker"
               with:
                 token: ${{github.token}}
+                input_dir: ./beebop
 
     
