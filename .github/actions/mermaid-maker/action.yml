@@ -41,16 +41,16 @@ runs:
       shell: bash
     - run: |
         if [[ ${{inputs.input_dir}} == "all" ]]; then
-          echo "files-to-check=**.${{inputs.input_file_extension}}" >> "$GITHUB_OUTPUT"
+          echo "files_to_check=**.${{inputs.input_file_extension}}" >> "$GITHUB_OUTPUT"
         else
-          echo "files-to-check=${{inputs.input_dir}}/**.${{inputs.input_file_extension}}" >> "$GITHUB_OUTPUT"
+          echo "files_to_check=${{inputs.input_dir}}/**.${{inputs.input_file_extension}}" >> "$GITHUB_OUTPUT"
         fi
       id: get-files-to-check
       shell: bash
     - uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
       id: changed_files
       with: 
-        files: ${{steps.get-files-to-check.outputs.files-to-check}}
+        files: ${{steps.get-files-to-check.outputs.files_to_check}}
         since: 2022-04-30
       # if outpu_dir same:
         # output file with new suffix
@@ -58,25 +58,17 @@ runs:
         # extract file name
         # place under new dir
         # output file with new suffix 
-    - run: |
-        if [[ ${{inputs.output_dir}} == "same" ]]; then
-          echo "dir-output=." >> "$GITHUB_OUTPUT"
-        else
-          echo "dir-output=${{inputs.output_dir}}" >> "$GITHUB_OUTPUT"
-        fi
-      id: get-dir-output
-      shell: bash
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
       env:
         ALL_CHANGED_FILES: ${{steps.changed_files.outputs.all_changed_files}}
       run: |
         for file in ${ALL_CHANGED_FILES}; do
-          file-base=$(basename -s .${{inputs.input_file_extension}} ${file})
-          original-file-dir=$(dirname ${file})
+          file_base=$(basename -s .${{inputs.input_file_extension}} ${file})
+          original_file_dir=$(dirname ${file})
           if [[ ${{inputs.output_dir}} == "same" ]]; then
-            aa-exec --profile=chrome mmdc -i "$file" -o "${original-file-dir}/${file-base}.${{inputs.output_file_extension}}" -b transparent
+            aa-exec --profile=chrome mmdc -i "$file" -o "${original_file_dir}/${file_base}.${{inputs.output_file_extension}}" -b transparent
           else
-            aa-exec --profile=chrome mmdc -i "$file" -o "${{inputs.output_dir}}/${file-base}.${{inputs.output_file_extension}}" -b transparent
+            aa-exec --profile=chrome mmdc -i "$file" -o "${{inputs.output_dir}}/${file_base}.${{inputs.output_file_extension}}" -b transparent
           fi
         done
 
