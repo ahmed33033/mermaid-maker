@@ -75,9 +75,9 @@ runs:
           file-base=$(basename -s .${{inputs.input_file_extension}} ${file})
           original-file-dir=$(dirname ${file})
           if [[ ${{inputs.output_dir}} == "same" ]]; then
-            aa-exec --profile=chrome mmdc -i "$file" -o "{$original-file-dir}/{$file-base}.${{inputs.output_file_extension}} -b transparent
+            aa-exec --profile=chrome mmdc -i "$file" -o "${original-file-dir}/${file-base}.${{inputs.output_file_extension}}" -b transparent
           else
-            aa-exec --profile=chrome mmdc -i "$file" -o "${{inputs.output_dir}}/{$file-base}.${{inputs.output_file_extension}} -b transparent
+            aa-exec --profile=chrome mmdc -i "$file" -o "${{inputs.output_dir}}/${file-base}.${{inputs.output_file_extension}}" -b transparent
           fi
         done
 
