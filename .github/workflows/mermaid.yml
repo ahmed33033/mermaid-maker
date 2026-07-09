@@ -1,6 +1,5 @@
-name: mermaid workflow
+name: test mermaid workflow
 on: 
-    push:
     workflow_dispatch:
 
 permissions:
@@ -14,8 +13,6 @@ jobs:
             - uses: "./.github/actions/mermaid-maker"
               with:
                 token: ${{github.token}}
-                input_dir: ./beebop
-                output_dir: ./output-dir
                 output_file_extension: png
 
     
