@@ -96,5 +96,5 @@ runs:
       with:
         message: "feat: Convert .mmd file(s) to ${{inputs.output_file_extension}}"
         # fix this error, its not working as expected
-        add: "-- **.${{inputs.output_file_extension}} :!mermaid-maker-chrome-browser/**"
+        remove: "mermaid-maker-chrome-browser/**"
     
