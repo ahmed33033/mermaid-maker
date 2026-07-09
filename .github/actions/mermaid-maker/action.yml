@@ -14,7 +14,7 @@ inputs:
     required: false
     default: "same" 
   output_file_extension:
-    description: the output format of the generated mermaid files
+    description: the output format of the generated mermaid files. Only "svg", "png"and "pdf" are accepted.
     required: false
     default: "svg"
   token: 
@@ -23,10 +23,9 @@ inputs:
       to the github repo
     required: true
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: arrow-down-circle
+  color: purple
 
 runs:
   using: composite
@@ -34,29 +33,38 @@ runs:
     - uses: "actions/checkout@main"
       with:
         token: ${{inputs.token}}
+
     - uses: "actions/setup-node@main"
       with: 
         node-version: 26
+
     - uses: pnpm/action-setup@v6
       with:
         version: 11
+
+    # env variable is used to skip browser download, to instead use caching mechanisms
     - run: PUPPETEER_SKIP_DOWNLOAD='true' pnpm install -g @mermaid-js/mermaid-cli
       shell: bash
-    - name: 'Cache browser'
+      name: install and setup pnpm
+
+    - name: 'Cache mermaid browser'
       uses: actions/cache/restore@v6.1.0
       with:
-        key: mermaid-maker-chrome-browser
+        # hash pnpm lock yaml to redownload web browser if mermaid version changes
+        key: mermaid-maker-chrome-browser-${{hashFiles('pnpm-lock.yaml')}}
         path: mermaid-maker-chrome-browser
       id: chrome_browser_download
+
     - name: install browser if doesnt exist
       if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true'}}
       run: PUPPETEER_CACHE_DIR='./mermaid-maker-chrome-browser' npx puppeteer browsers install
       shell: bash
+
     - if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true'}}
-      name: 'Save cache'
+      name: 'cache mermaid browser'
       uses: actions/cache/save@v6.1.0
       with:
-        key: mermaid-maker-chrome-browser
+        key: mermaid-maker-chrome-browser-${{hashFiles('pnpm-lock.yaml')}}
         path: mermaid-maker-chrome-browser
     - run: |
         if [[ ${{inputs.input_dir}} == "all" ]]; then
@@ -65,48 +73,67 @@ runs:
           echo "files_to_check=${{inputs.input_dir}}/**.${{inputs.input_file_extension}}" >> "$GITHUB_OUTPUT"
         fi
       id: get-files-to-check
+      name: get directory names to check for changes
       shell: bash
+
     - uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
       id: changed_files
       with: 
         files: ${{steps.get-files-to-check.outputs.files_to_check}}
-        since: 2022-04-30
-      # if outpu_dir same:
-        # output file with new suffix
+
+      # basic though process for next step:
+      # if output_dir is the same:
+        # generate file with new suffix
       # if output_dir diff
         # extract file name
         # place under new dir
-        # output file with new suffix 
+        # generate file with new suffix 
+      
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
       id: mermaid-gen
+      name: Generate mermaid diagrams
       env:
         ALL_CHANGED_FILES: ${{steps.changed_files.outputs.all_changed_files}}
       run: |
-        arr=()
+
+        # create output_file_array to save all the names of outputted files
+        # this array will later be used to git add all of them to repo
+        output_file_arr=()
+
+        # generate mermaid diagram for each changed file
         for file in ${ALL_CHANGED_FILES}; do
-          file_base=$(basename -s ".${{inputs.input_file_extension}}" "${file}")
-          original_file_dir=$(dirname "${file}")
+          # get the file's basename (just the file's name), and remove final suffix
+          file_basename=$(basename -s ".${{inputs.input_file_extension}}" "${file}")
+          # get the file's dirname (just the dir path)
+          file_dirname=$(dirname "${file}")
+
           if [[ "${{inputs.output_dir}}" == "same" ]]; then
-            output_file="${original_file_dir}/${file_base}.${{inputs.output_file_extension}}"
-            arr+=("$output_file")
+            # keep the same dirname
+            output_file="${file_dirname}/${file_basename}.${{inputs.output_file_extension}}"
+            output_file_arr+=("$output_file")
+
+            # use env variable to specify custom browser location
+            # use aa-exec --profile chrome to sandbox puppeteer's chrome executoin
+            # generate output files with transparent background
             PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome mmdc -i "$file" -o "$output_file" -b transparent
           else
-            output_file="${{inputs.output_dir}}/${file_base}.${{inputs.output_file_extension}}"
-            arr+=("$output_file")
+
+            # use user specified output dir
+            output_file="${{inputs.output_dir}}/${file_basename}.${{inputs.output_file_extension}}"
+            output_file_arr+=("$output_file")
             PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome mmdc -i "$file" -o "$output_file" -b transparent
           fi
         done
 
-
-        # Source - https://stackoverflow.com/a/67489301
+        # jq commmand Source - https://stackoverflow.com/a/67489301
         # Posted by Weeble, modified by community. See post 'Timeline' for change history
         # Retrieved 2026-07-09, License - CC BY-SA 4.0
-
-        echo "OUTPUTTED_FILES=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${arr[@]}")" >> "$GITHUB_OUTPUT"
+        # goal: save OUTPUTTED_FILES as json array
+        echo "OUTPUTTED_FILES=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${output_file_arr[@]}")" >> "$GITHUB_OUTPUT"
 
       shell: bash
     - uses: EndBug/add-and-commit@v10
       with:
         message: "feat: Convert .mmd file(s) to ${{inputs.output_file_extension}}"
-        # fix this error, its not working as expected
+        # the github action will run git add for each file in the array
         add: ${{steps.mermaid-gen.outputs.OUTPUTTED_FILES}}
