@@ -37,6 +37,9 @@ runs:
     - uses: "actions/setup-node@main"
       with: 
         node-version: 26
+    - uses: pnpm/action-setup@v6
+      with:
+        version: 11
     - run: PUPPETEER_SKIP_DOWNLOAD='true' pnpm install -g @mermaid-js/mermaid-cli
       shell: bash
     - name: 'Cache browser'
