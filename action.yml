@@ -2,26 +2,38 @@ name: Mermaid Maker
 description: Convert mermaid files into image formats.
 inputs:
   input_dir:
-    description: the input directory for mermaid files
+    description: |
+     The input directory for mermaid files. Defaults to "all",
+     i.e. all changed files with input_file_extension across the whole repo.
     required: false
     default: "all"
   input_file_extension:
-    description: the extension of the mermaid files
+    description: The extension of the mermaid files. Defaults to "mmd"
     required: false
     default: "mmd"
   output_dir:
-    description: the output directory for generated mermaid files
+    description: |
+      The output directory for generated mermaid files. Defaults to "same",
+      i.e. converted files will be placed in the same directory as their source files.
     required: false
     default: "same" 
   output_file_extension:
-    description: the output format of the generated mermaid files. Only "svg", "png"and "pdf" are accepted.
+    description: |
+      The output format of the generated mermaid files. Only "svg", "png"and "pdf" are accepted. Defaults to "svg". 
     required: false
     default: "svg"
   token: 
     description: |
-      the PAT (personal access token) used to access and push changes
-      to the github repo
-    required: true
+      The PAT (personal access token) used to access and push changes
+      to the github repo. Defaults to `github.token`. 
+    required: false
+    default: ${{github.token}}
+  commit_message:
+    description: |
+      The commit message used for commiting mermaid files into the repository. 
+      Defaults to: "feat: Convert `input_file_extension` file(s) to `output_file_extension`".
+    required: false
+    default: ""
 
 branding:
   icon: arrow-down-circle
@@ -30,28 +42,29 @@ branding:
 runs:
   using: composite
   steps:
-    - uses: "actions/checkout@main"
+    - uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
       with:
         token: ${{inputs.token}}
 
-    - uses: "actions/setup-node@main"
+    - uses: "actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e" # v6.4.0
       with: 
         node-version: 26
 
-    - uses: pnpm/action-setup@v6
+    - uses: "pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271" # v6.0.9
       with:
         version: 11
 
     # env variable is used to skip browser download, to instead use caching mechanisms
-    - run: PUPPETEER_SKIP_DOWNLOAD='true' pnpm install -g @mermaid-js/mermaid-cli
+    - run: PUPPETEER_SKIP_DOWNLOAD='true' pnpm install -g @mermaid-js/mermaid-cli@11.16.0
       shell: bash
       name: install and setup pnpm
 
     - name: 'Cache mermaid browser'
-      uses: actions/cache/restore@v6.1.0
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        # hash pnpm lock yaml to redownload web browser if mermaid version changes
-        key: mermaid-maker-chrome-browser-${{hashFiles('pnpm-lock.yaml')}}
+        # pin mermaid browser to mermaid version
+        # in the future, this should be automated
+        key: mermaid-maker-chrome-browser-11.16.0
         path: mermaid-maker-chrome-browser
       id: chrome_browser_download
 
@@ -64,7 +77,7 @@ runs:
       name: 'cache mermaid browser'
       uses: actions/cache/save@v6.1.0
       with:
-        key: mermaid-maker-chrome-browser-${{hashFiles('pnpm-lock.yaml')}}
+        key: mermaid-maker-chrome-browser-11.16.0
         path: mermaid-maker-chrome-browser
     - run: |
         if [[ ${{inputs.input_dir}} == "all" ]]; then
@@ -132,8 +145,16 @@ runs:
         echo "OUTPUTTED_FILES=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${output_file_arr[@]}")" >> "$GITHUB_OUTPUT"
 
       shell: bash
-    - uses: EndBug/add-and-commit@v10
+    
+    - name: set commit message
+      id: COMMIT_MSG
+      if: ${{inputs.commit_message == ''}}
+      run: |
+        "SET_COMMIT_MSG='feat: Convert .${{inputs.input_file_extension}} file(s) to ${{inputs.output_file_extension}}'" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - uses: EndBug/add-and-commit@290ea2c423ad77ca9c62ae0f5b224379612c0321 # v10.0.0
       with:
-        message: "feat: Convert .mmd file(s) to ${{inputs.output_file_extension}}"
+        message: ${{steps.COMMIT_MSG.outputs.SET_COMMIT_MSG}}
         # the github action will run git add for each file in the array
         add: ${{steps.mermaid-gen.outputs.OUTPUTTED_FILES}}
