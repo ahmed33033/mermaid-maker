@@ -33,25 +33,36 @@ inputs:
     required: false
     default: ""
 
+  pkg_manager:
+    description: |
+      The node package manager to use.
+      Examples:
+        - "npm"   
+        - "pnpm"  
+        - "yarn" 
+        - "bun"   
+    required: false
+    default: "npm"
+
   pkg_manager_install_cmd:
     description: |
       The node package manager's command to install a package.
       Examples:
-        - "npm install"   # for npm
-        - "pnpm install"  # for pnpm
-        - "yarn install"  # for yarn
-        - "bun install"   # for bun
+        - "install"   # for npm
+        - "install"   # for pnpm
+        - "install"   # for yarn
+        - "install"   # for bun
     required: false
-    default: "npm install"
+    default: "install"
 
   pkg_manager_run_cmd:
     description: | 
       The node package manager's command to run an installed, local package. 
       Examples:
-        - "npx"   # for npm
-        - "pnpm"  # for pnpm
+        - "npx"       # for npm
+        - "pnpm"      # for pnpm
         - "yarn dlx"  # for yarn
-        - "bunx"    # for barn
+        - "bunx"      # for barn
     required: false
     default: "npx"
 
