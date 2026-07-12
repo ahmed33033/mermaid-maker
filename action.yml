@@ -35,36 +35,14 @@ inputs:
 
   pkg_manager:
     description: |
-      The node package manager to use.
-      Examples:
+      The node package manager to use. Make sure it's setup before using this action.
+      Currently, only the following pkg_managers are accepted:
         - "npm"   
         - "pnpm"  
         - "yarn" 
         - "bun"   
     required: false
     default: "npm"
-
-  pkg_manager_install_cmd:
-    description: |
-      The node package manager's command to install a package.
-      Examples:
-        - "install"   # for npm
-        - "install"   # for pnpm
-        - "install"   # for yarn
-        - "install"   # for bun
-    required: false
-    default: "install"
-
-  pkg_manager_run_cmd:
-    description: | 
-      The node package manager's command to run an installed, local package. 
-      Examples:
-        - "npx"       # for npm
-        - "pnpm"      # for pnpm
-        - "yarn dlx"  # for yarn
-        - "bunx"      # for barn
-    required: false
-    default: "npx"
 
 branding:
   icon: arrow-down-circle
@@ -90,10 +68,26 @@ runs:
         files: ${{steps.get-files-to-check.outputs.files_to_check}}
         since_last_remote_commit: "true"
 
+    - name: Set pkg_manager run commmand
+      run: |
+        if [[ ${{inputs.pkg_manager}} == 'npm' ]]; then
+            "pkg_manager_run_cmd=npx" >> "$GITHUB_OUTPUT"
+        elif [[ ${{inputs.pkg_manager}} == 'pnpm' ]]; then
+            "pkg_manager_run_cmd=pnpm" >> "$GITHUB_OUTPUT"
+        elif [[ ${{inputs.pkg_manager}} == 'yarn' ]]; then
+            "pkg_manager_run_cmd=yarn dlx" >> "$GITHUB_OUTPUT"
+        elif [[ ${{inputs.pkg_manager}} == 'bun' ]]; then
+            "pkg_manager_run_cmd=bunx" >> "$GITHUB_OUTPUT"
+        else
+            exit 1
+        fi
+      id: set_pkg_manager_run
+      shell: bash
+
     # env variable is used to skip browser download, to instead use caching mechanisms
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
       name: install mermaid
-      run: PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager_install_cmd}} @mermaid-js/mermaid-cli@11.16.0
+      run: PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
       shell: bash
 
     - if: ${{steps.changed_files.outputs.any_changed == 'true'}}
@@ -108,7 +102,7 @@ runs:
 
     - if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true' && steps.changed_files.outputs.any_changed == 'true'}}
       name: install browser if doesnt exist
-      run: PUPPETEER_CACHE_DIR='./mermaid-maker-chrome-browser' ${{inputs.pkg_manager_run_cmd}} puppeteer browsers install
+      run: PUPPETEER_CACHE_DIR='./mermaid-maker-chrome-browser' ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}} puppeteer browsers install
       shell: bash
 
     - if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true' && steps.changed_files.outputs.any_changed == 'true'}}
@@ -152,13 +146,13 @@ runs:
             # use env variable to specify custom browser location
             # use aa-exec --profile chrome to sandbox puppeteer's chrome executoin
             # generate output files with transparent background
-            PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome mmdc -i "$file" -o "$output_file" -b transparent
+            PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}} mmdc -i "$file" -o "$output_file" -b transparent
           else
 
             # use user specified output dir
             output_file="${{inputs.output_dir}}/${file_basename}.${{inputs.output_file_extension}}"
             output_file_arr+=("$output_file")
-            PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome ${{inputs.pkg_manager_run_cmd}} mmdc -i "$file" -o "$output_file" -b transparent
+            PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}} mmdc -i "$file" -o "$output_file" -b transparent
           fi
         done
 
