@@ -71,13 +71,13 @@ runs:
     - name: Set pkg_manager run commmand
       run: |
         if [[ ${{inputs.pkg_manager}} == 'npm' ]]; then
-            "pkg_manager_run_cmd=npx" >> "$GITHUB_OUTPUT"
+            echo "pkg_manager_run_cmd=npx" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'pnpm' ]]; then
-            "pkg_manager_run_cmd=pnpm" >> "$GITHUB_OUTPUT"
+            echo "pkg_manager_run_cmd=pnpm" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'yarn' ]]; then
-            "pkg_manager_run_cmd=yarn dlx" >> "$GITHUB_OUTPUT"
+            echo "pkg_manager_run_cmd=yarn dlx" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'bun' ]]; then
-            "pkg_manager_run_cmd=bunx" >> "$GITHUB_OUTPUT"
+            echo "pkg_manager_run_cmd=bunx" >> "$GITHUB_OUTPUT"
         else
             exit 1
         fi
