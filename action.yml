@@ -95,7 +95,7 @@ runs:
         if [[ ${{inputs.pkg_manager}} == 'npm' ]]; then
             echo "pkg_manager_run_cmd=npx" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'pnpm' ]]; then
-            echo "pkg_manager_run_cmd='CI=true pnpm'" >> "$GITHUB_OUTPUT"
+            echo "pkg_manager_run_cmd='pnpm" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'yarn' ]]; then
             echo "pkg_manager_run_cmd=yarn dlx" >> "$GITHUB_OUTPUT"
         elif [[ ${{inputs.pkg_manager}} == 'bun' ]]; then
@@ -109,7 +109,7 @@ runs:
     # env variable is used to skip browser download, to instead use caching mechanisms
     - if: ${{steps.changed_files.outputs.CHANGED_FILES != ''}}
       name: install mermaid
-      run: PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
+      run: PUPPETEER_SKIP_DOWNLOAD='true' CI=true ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
       shell: bash
 
     - if: ${{steps.changed_files.outputs.CHANGED_FILES != ''}}
