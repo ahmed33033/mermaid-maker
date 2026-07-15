@@ -187,38 +187,59 @@ runs:
         RUN_CMD: ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}}
       run: |
 
-        # create output_file_array to save all the names of outputted files
-        # this array will later be used to git add all of them to repo
-        output_file_arr=()
+        import os
+        import json
+        from subprocess import run
+        from pathlib import Path
+
+        output_file_arr = []
+        mermaid_env = [
+            "PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser",
+            "aa-exec --profile=chrome",
+        ]
 
         # generate mermaid diagram for each changed file
-        for file in ${ALL_CHANGED_FILES}; do
+        for file in "${{env.ALL_CHANGED_FILES}}".split("\n"):
+            if "${{inputs.output_dir}}" == "same":
+                output_file = file + ".${{inputs.output_file_extension}}"
+                output_file_arr.append(output_file)
 
-          if [[ "${{inputs.output_dir}}" == "same" ]]; then
-            # keep the same dirname
-            output_file="${file}.${{inputs.output_file_extension}}"
-            output_file_arr+=("$output_file")
+                # use env variable to specify custom browser location
+                # use aa-exec --profile chrome to sandbox puppeteer's chrome executoin
+                # generate output files with transparent background
+                mermaid_cmd = [
+                    "mmdc",
+                    "-i",
+                    file + ".${{inputs.input_file_extension}}",
+                    "-o",
+                    output_file,
+                    "-b",
+                    "transparent",
+                ]
+                run(mermaid_env + ["${{env.RUN_CMD}}"] + mermaid_cmd)
+            else:
+                # use user specified output dir
+                output_file = (Path("${{inputs.output_dir}}") / file).with_suffix(
+                    "${{inputs.output_file_extension}}"
+                )
+                output_file_arr.append(output_file)
 
-            # use env variable to specify custom browser location
-            # use aa-exec --profile chrome to sandbox puppeteer's chrome executoin
-            # generate output files with transparent background
-            ${{env.MERMAID_ENV}} ${{env.RUN_CMD}} mmdc -i "${file}.${{inputs.input_file_extension}}" -o "$output_file" -b transparent
+                mermaid_cmd = [
+                    "mmdc",
+                    "-i",
+                    file + ".${{inputs.input_file_extension}}",
+                    "-o",
+                    output_file,
+                    "-b",
+                    "transparent",
+                ]
 
-          else
-            # use user specified output dir
-            output_file="${{inputs.output_dir}}/${file}.${{inputs.output_file_extension}}"
-            output_file_arr+=("$output_file")
+                run(mermaid_env + ["${{env.RUN_CMD}}"] + mermaid_cmd)
 
-            ${{env.MERMAID_ENV}} ${{env.RUN_CMD}} mmdc -i "${file}.${{inputs.input_file_extension}}" -o "$output_file" -b transparent
-          fi
-        done
+        with open(os.environ["GITHUB_OUTPUT"]) as file:
+            print(f"OUTPUTTED_FILES={json.dumps(output_file_arr)}", file=file)
 
-        # jq commmand Source - https://stackoverflow.com/a/67489301
-        # Posted by Weeble, modified by community. See post 'Timeline' for change history
-        # Retrieved 2026-07-09, License - CC BY-SA 4.0
-        # goal: save OUTPUTTED_FILES as json array
-        echo "OUTPUTTED_FILES=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${output_file_arr[@]}")" >> "$GITHUB_OUTPUT"
-      shell: bash
+      shell: python
     
     - if: ${{inputs.commit_message == '' && steps.changed_files.outputs.CHANGED_FILES != ''}}
       name: set commit message
