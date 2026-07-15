@@ -129,23 +129,6 @@ runs:
       name: install mermaid
       run: PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
       shell: bash
-    
-    - if: ${{steps.changed_files.outputs.CHANGED_FILES != ''}}
-      name: Package manager teardown
-      run: |
-        if [[ ${{inputs.pkg_manager}} == 'npm' ]]; then
-            echo "Nothing to tear down" 
-        elif [[ ${{inputs.pkg_manager}} == 'pnpm' ]]; then
-            pnpm config set --location=project strictDepBuilds true
-        elif [[ ${{inputs.pkg_manager}} == 'yarn' ]]; then
-            echo "Nothing to tear down"
-        elif [[ ${{inputs.pkg_manager}} == 'bun' ]]; then
-            echo "Nothing to tear down" 
-        else
-            exit 1
-        fi
-      shell: bash
-
 
 
     - if: ${{steps.changed_files.outputs.CHANGED_FILES != ''}}
@@ -262,3 +245,20 @@ runs:
         message: ${{steps.COMMIT_MSG.outputs.SET_COMMIT_MSG}}
         # the github action will run git add for each file in the array
         add: ${{steps.mermaid-gen.outputs.OUTPUTTED_FILES}}
+
+
+    - if: ${{steps.changed_files.outputs.CHANGED_FILES != ''}}
+      name: Package manager teardown
+      run: |
+        if [[ ${{inputs.pkg_manager}} == 'npm' ]]; then
+            echo "Nothing to tear down" 
+        elif [[ ${{inputs.pkg_manager}} == 'pnpm' ]]; then
+            pnpm config set --location=project strictDepBuilds true
+        elif [[ ${{inputs.pkg_manager}} == 'yarn' ]]; then
+            echo "Nothing to tear down"
+        elif [[ ${{inputs.pkg_manager}} == 'bun' ]]; then
+            echo "Nothing to tear down" 
+        else
+            exit 1
+        fi
+      shell: bash
