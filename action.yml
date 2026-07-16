@@ -62,7 +62,6 @@ runs:
       shell: bash
 
     ## check for changes files and exit early with no changes
-    # TODO: add inputs and change variable names for next steps
     - id: changed_files
       name: check for missing/old outputted files
       run: |
@@ -185,25 +184,8 @@ runs:
           # generate mermaid diagram for each changed file
           for file in "${{env.ALL_CHANGED_FILES}}".split("\n"):
               if "${{inputs.output_dir}}" == "same":
-                  output_file = file + ".${{inputs.output_file_extension}}"
+                  output_file = Path(file).with_suffix("${{inputs.output_file_extension}}")
                   output_file_arr.append(output_file)
-
-                  # use env variable to specify custom browser location
-                  # use aa-exec --profile chrome to sandbox puppeteer's chrome executoin
-                  # generate output files with transparent background
-                  mermaid_cmd = [
-                      "mmdc",
-                      "-i",
-                      file + ".${{inputs.input_file_extension}}",
-                      "-o",
-                      output_file,
-                      "-b",
-                      "transparent",
-                  ]
-
-                  run(
-                      mermaid_env + ["${{env.RUN_CMD}}"] + mermaid_cmd,
-                  )
 
               else:
                   # use user specified output dir
@@ -212,23 +194,22 @@ runs:
                   )
                   output_file_arr.append(output_file)
 
-                  mermaid_cmd = [
-                      "mmdc",
-                      "-i",
-                      file + ".${{inputs.input_file_extension}}",
-                      "-o",
-                      output_file,
-                      "-b",
-                      "transparent",
-                  ]
+              mermaid_cmd = [
+                  "mmdc",
+                  "-i",
+                  file + ".${{inputs.input_file_extension}}",
+                  "-o",
+                  output_file,
+                  "-b",
+                  "transparent",
+              ]
 
-                  run(
-                      mermaid_env + ["${{env.RUN_CMD}}"] + mermaid_cmd,
-                  )
+              run(
+                  mermaid_env + ["${{env.RUN_CMD}}"] + mermaid_cmd,
+              )
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               print(f"OUTPUTTED_FILES={json.dumps(output_file_arr)}", file=file)
-
 
       shell: python
     
