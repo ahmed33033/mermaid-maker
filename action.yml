@@ -210,7 +210,8 @@ runs:
       id: mermaid-gen
       name: Generate mermaid diagrams
       env:
-        ALL_CHANGED_FILES: ${{steps.get_files_to_regen.outputs.input_files_to_regen}}
+        input_files_to_regen: ${{steps.get_files_to_regen.outputs.input_files_to_regen}}
+        output_files_to_regen: ${{steps.get_files_to_regen.outputs.output_files_to_regen}}
         MERMAID_ENV: PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome
         RUN_CMD: ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}}
       run: |
