@@ -216,6 +216,7 @@ runs:
         RUN_CMD: ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}}
       run: |
           import json
+          from subprocess import run
 
           input_files_to_regen = json.loads('${{env.input_files_to_regen}}')
           output_files_to_regen = json.loads('${{env.output_files_to_regen}}')
