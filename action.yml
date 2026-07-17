@@ -54,6 +54,8 @@ runs:
     - name: Get all the input mermaid files
       run: |
           from glob import glob
+          import os
+
           if "${{inputs.input_dir}}" == "all":
               input_files_glob_pattern = "**/*.${{inputs.input_file_extension}}"
           else:
@@ -74,6 +76,7 @@ runs:
           from glob import glob
           from pathlib import Path
           from os.path import basename
+          import os
 
           input_files = json.loads("${{env.input_files}}")
           output_files = []
@@ -103,6 +106,7 @@ runs:
     - name: Get all the input/ouput files that must be (re)generated
       run: |
           from os.path import getmtime
+          import os
           from pathlib import Path
           import json
 
