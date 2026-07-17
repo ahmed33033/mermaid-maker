@@ -80,7 +80,7 @@ runs:
           import os
           import json
 
-          input_files = json.loads(${{env.input_files}})
+          input_files = json.loads('${{env.input_files}}')
           output_files = []
 
           if '${{inputs.output_dir}}' == 'same':
@@ -112,8 +112,8 @@ runs:
           from pathlib import Path
           import json
 
-          input_files = json.loads(${{env.input_files}})
-          output_files = json.loads(${{env.output_files}})
+          input_files = json.loads('${{env.input_files}}')
+          output_files = json.loads('${{env.output_files}}')
 
           input_files_to_regen = []
           output_files_to_regen = []
@@ -216,8 +216,8 @@ runs:
       run: |
           import json
 
-          input_files_to_regen = json.loads(${{env.input_files_to_regen}})
-          output_files_to_regen = json.loads(${{env.output_files_to_regen}})
+          input_files_to_regen = json.loads('${{env.input_files_to_regen}}')
+          output_files_to_regen = json.loads('${{env.output_files_to_regen}}')
 
           mermaid_env = [
               "env",
