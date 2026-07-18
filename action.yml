@@ -143,6 +143,7 @@ runs:
       run: |
           ### Set pkg_manager run commmand
           from subprocess import run
+          import os
           
           pkg_manager_run_cmd = ""
           if "${{inputs.pkg_manager}}" == "npm":
