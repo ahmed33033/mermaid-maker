@@ -297,4 +297,4 @@ runs:
             print("Nothing to teardown")
           else:
               run(["exit", "1"])
-      shell: pyhton
+      shell: python
