@@ -53,6 +53,7 @@ runs:
   steps:
     - name: Get all the input mermaid files
       run: |
+          ### Get all the input mermaid files
           from glob import glob
           import os
           import json
@@ -74,6 +75,7 @@ runs:
 
     - name: Get all the existing, generated mermaid files (if they exist)
       run: |
+          ### Get all the existing, generated mermaid files (if they exist)
           from glob import glob
           from pathlib import Path
           from os.path import basename
@@ -107,6 +109,7 @@ runs:
     ## check for changes files and exit early with no changes
     - name: Get all the input/ouput files that must be (re)generated
       run: |
+          ### Get all the input/ouput files that must be (re)generated
           from os.path import getmtime
           import os
           from pathlib import Path
@@ -138,6 +141,7 @@ runs:
     - if: ${{steps.get_files_to_regen.outputs.input_files_to_regen != '[]'}}
       name: Set pkg_manager run commmand
       run: |
+          ### Set pkg_manager run commmand
           from subprocess import run
           
           pkg_manager_run_cmd = ""
@@ -161,6 +165,7 @@ runs:
     - if: ${{steps.get_files_to_regen.outputs.input_files_to_regen != '[]'}}
       name: Package manager setup
       run: |
+          ### Package manager setup
           from subprocess import run
           
           pkg_manager_run_cmd = ""
@@ -180,7 +185,9 @@ runs:
     # env variable is used to skip browser download, to instead use caching mechanisms
     - if: ${{steps.get_files_to_regen.outputs.input_files_to_regen != '[]'}}
       name: install mermaid
-      run: PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
+      run: |
+        ### install mermaid
+        PUPPETEER_SKIP_DOWNLOAD='true' ${{inputs.pkg_manager}} install @mermaid-js/mermaid-cli@11.16.0
       shell: bash
 
 
@@ -196,7 +203,9 @@ runs:
 
     - if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true' && steps.get_files_to_regen.outputs.input_files_to_regen != '[]'}}
       name: install browser if doesnt exist
-      run: PUPPETEER_CACHE_DIR='./mermaid-maker-chrome-browser' ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}} puppeteer browsers install
+      run: |
+        ### install browser if doesnt exist
+        PUPPETEER_CACHE_DIR='./mermaid-maker-chrome-browser' ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}} puppeteer browsers install
       shell: bash
 
     - if: ${{steps.chrome_browser_download.outputs.cache-hit != 'true' && steps.get_files_to_regen.outputs.input_files_to_regen != '[]'}}
@@ -223,6 +232,7 @@ runs:
         MERMAID_ENV: PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser aa-exec --profile=chrome
         RUN_CMD: ${{steps.set_pkg_manager_run.outputs.pkg_manager_run_cmd}}
       run: |
+          ### Generate mermaid diagrams
           import json
           from subprocess import run
 
