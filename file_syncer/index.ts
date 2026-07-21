@@ -1,0 +1,57 @@
+import { load, dump } from 'js-yaml'
+import { readFileSync, writeFileSync } from 'node:fs'
+
+interface GithubAction {
+    name: string
+    description?: string
+    inputs?: object
+    runs: {
+        using: string
+        steps: {
+            name?: string
+            id?: string
+            run?: string
+            if?: string
+            uses?: string
+            shell?: "bash" | "python"
+            env?: object
+        }[]
+    }
+}
+// Get document, or throw exception on error
+
+const doc = load(readFileSync('../action.yml', 'utf8')) as GithubAction
+
+export function sync_left() {
+    const steps = doc["runs"]["steps"]
+    for (const step of steps) {
+        if (step['shell'] === "python") {
+            const py_id = step['id']
+            const py_run = step['run'] as string
+            writeFileSync(`../python_snippets/${py_id}.py`, py_run)
+
+        }
+    }
+}
+
+export function sync_right() {
+    const steps = doc["runs"]["steps"]
+    for (const step of steps) {
+        if (step['shell'] === "python") {
+            const py_id = step['id']
+            try {
+                step['run'] = readFileSync(`../python_snippets/${py_id}.py`, "utf-8")
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    console.log(error.message)
+                }
+                else {
+                    console.log(error)
+                }
+
+            }
+        }
+    }
+    writeFileSync("../action.yml", dump(doc))
+}
