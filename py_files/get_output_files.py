@@ -3,21 +3,31 @@ from os.path import basename
 from os import environ
 import json
 
-input_files = json.loads(environ["INPUT_FILES"])
-output_files = []
 
-if environ["OUTPUT_DIR"] == "same":
-    for file in input_files:
-        output_files.append(
-            Path(file).with_suffix(f".{environ['OUTPUT_FILE_EXTENSION']}").as_posix()
-        )
-else:
-    for file in input_files:
-        output_files.append(
-            (Path(environ["OUTPUT_DIR"]) / basename(file))
-            .with_suffix(f".{environ['OUTPUT_FILE_EXTENSION']}")
-            .as_posix()
-        )
+def get_output_files(input_files, output_dir, output_file_extension, output_file):
+    output_files = []
 
-with open(environ["GITHUB_OUTPUT"], "a") as file:
-    print(f"output_files={json.dumps(output_files)}", file=file)
+    if output_dir == "same":
+        for file in input_files:
+            output_files.append(
+                Path(file).with_suffix(f".{output_file_extension}").as_posix()
+            )
+    else:
+        for file in input_files:
+            output_files.append(
+                (Path(output_dir) / basename(file))
+                .with_suffix(f".{output_file_extension}")
+                .as_posix()
+            )
+
+    with open(output_file, "a") as file:
+        print(f"output_files={json.dumps(output_files)}", file=file)
+
+
+if __name__ == "__main__":
+    get_output_files(
+        json.loads(environ["INPUT_FILES"]),
+        environ["OUTPUT_DIR"],
+        environ["OUTPUT_FILE_EXTENSION"],
+        environ["GITHUB_OUTPUT"],
+    )

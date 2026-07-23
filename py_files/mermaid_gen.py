@@ -2,28 +2,36 @@ import json
 from subprocess import run
 from os import environ
 
-input_files_to_regen = json.loads(environ["INPUT_FILES_TO_REGEN"])
-output_files_to_regen = json.loads(environ["OUTPUT_FILES_TO_REGEN"])
 
-mermaid_env = [
-    "env",
-    "PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser",
-    "aa-exec",
-    "--profile=chrome",
-]
+def gen_mermaid(input_files_to_regen, output_files_to_regen, run_cmd):
 
-# generate mermaid diagram for each changed file
-for i in range(len(input_files_to_regen)):
-    mermaid_cmd = [
-        "mmdc",
-        "-i",
-        input_files_to_regen[i],
-        "-o",
-        output_files_to_regen[i],
-        "-b",
-        "transparent",
+    mermaid_env = [
+        "env",
+        "PUPPETEER_CACHE_DIR=mermaid-maker-chrome-browser",
+        "aa-exec",
+        "--profile=chrome",
     ]
 
-    run(
-        mermaid_env + [environ["RUN_CMD"]] + mermaid_cmd,
+    # generate mermaid diagram for each changed file
+    for i in range(len(input_files_to_regen)):
+        mermaid_cmd = [
+            "mmdc",
+            "-i",
+            input_files_to_regen[i],
+            "-o",
+            output_files_to_regen[i],
+            "-b",
+            "transparent",
+        ]
+
+        run(
+            mermaid_env + [run_cmd] + mermaid_cmd,
+        )
+
+
+if __name__ == "__main__":
+    gen_mermaid(
+        json.loads(environ["INPUT_FILES_TO_REGEN"]),
+        json.loads(environ["OUTPUT_FILES_TO_REGEN"]),
+        environ["RUN_CMD"],
     )
