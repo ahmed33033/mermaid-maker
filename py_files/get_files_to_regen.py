@@ -1,5 +1,3 @@
-### Get all the input/ouput files that must be (re)generated
-
 from os.path import getmtime
 from os import environ
 from pathlib import Path

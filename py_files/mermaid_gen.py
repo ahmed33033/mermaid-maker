@@ -1,5 +1,3 @@
-### Generate mermaid diagrams
-
 import json
 from subprocess import run
 from os import environ

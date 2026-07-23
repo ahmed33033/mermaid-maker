@@ -1,5 +1,3 @@
-### Get all the input mermaid files
-
 from glob import glob
 from os import environ
 import json

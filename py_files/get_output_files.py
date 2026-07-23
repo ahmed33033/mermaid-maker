@@ -1,5 +1,3 @@
-### Get all the existing, generated mermaid files (if they exist)
-
 from pathlib import Path
 from os.path import basename
 from os import environ
