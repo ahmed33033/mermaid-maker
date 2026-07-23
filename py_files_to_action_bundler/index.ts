@@ -39,7 +39,7 @@ export function bundle_to_action() {
     const steps = doc["runs"]["steps"]
     for (const step of steps) {
         if (step['shell'] === "python") {
-            const py_id = step['id']
+            let py_id = step['id']
             try {
                 step['run'] = readFileSync(`../py_files/${py_id}.py`, "utf-8")
             }
@@ -54,5 +54,5 @@ export function bundle_to_action() {
             }
         }
     }
-    writeFileSync("../action.yml", dump(doc))
+    writeFileSync("../action.yml", dump(doc, { "lineWidth": -1 }), "utf-8")
 }
